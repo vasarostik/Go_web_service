@@ -12,11 +12,11 @@ import (
 
 var (
 	MaxWorker, errWorker = strconv.Atoi(os.Getenv("MAX_WORKERS")) // Environment Variables
-	MaxQueue,  errQueue  = strconv.Atoi(os.Getenv("MAX_QUEUE"))
-	JobQueue = make(chan Job, MaxQueue) // Channel for passing jobs to Dispatcher
+	MaxQueue, errQueue   = strconv.Atoi(os.Getenv("MAX_QUEUE"))
+	JobQueue             = make(chan Job, MaxQueue) // Channel for passing jobs to Dispatcher
 )
 
-func RequestHandler(w http.ResponseWriter, r *http.Request, JobQueue chan Job) {
+func RequestHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		job := Job{} // Create Job and push into the jobQueue
 
@@ -35,12 +35,11 @@ func RequestHandler(w http.ResponseWriter, r *http.Request, JobQueue chan Job) {
 
 		w.WriteHeader(http.StatusCreated)
 		return
-	}else{
+	} else {
 		w.Header().Set("Allow", "POST")
 		http.Error(w, "POST method only", http.StatusMethodNotAllowed)
 	}
 }
-
 
 func main() {
 	if (errWorker != nil) || (errQueue != nil) {
@@ -52,7 +51,8 @@ func main() {
 
 	// Start the HTTP handler
 	http.HandleFunc("/username", func(w http.ResponseWriter, r *http.Request) {
-		RequestHandler(w, r, JobQueue)})
+		RequestHandler(w, r)
+	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
